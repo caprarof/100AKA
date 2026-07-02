@@ -1,0 +1,6 @@
+mon-depot/
+├── index.html          # Page d'accueil
+├── tirage3.html         # Votre fichier
+├── 100FANZONE.jpeg     # Votre logo
+├── README.md
+└── .nojekyll           # (optionnel)
