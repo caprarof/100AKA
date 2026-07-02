@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tirage Concours</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #002b5c, #005eb8);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 10px;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            max-width: 500px;
+            margin: 0 auto;
+            gap: 15px;
+        }
+
+        #gauche {
+            flex: 1;
+            text-align: center;
+            padding: 15px 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            order: 1;
+        }
+
+        #droite {
+            background: #00142d;
+            border: 2px solid gold;
+            border-radius: 15px;
+            padding: 15px;
+            order: 2;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            word-wrap: break-word;
+        }
+
+        #logo {
+            width: 200px;
+            max-width: 80%;
+            margin-bottom: 15px;
+            border-radius: 10px;
+        }
+
+        #roulette {
+            width: 100%;
+            min-height: 80px;
+            height: auto;
+            padding: 15px;
+            margin: 15px auto;
+            border: 4px solid gold;
+            border-radius: 15px;
+            background: white;
+            color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            font-weight: bold;
+            word-wrap: break-word;
+            text-align: center;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: gold;
+            font-size: 18px;
+            font-weight: bold;
+            flex: 1;
+            min-width: 120px;
+            touch-action: manipulation;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            transform: none;
+            pointer-events: none;
+        }
+
+        .btn-enregistrer {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn-enregistrer.recording {
+            background: #ff0000;
+            animation: pulse 1s infinite;
+        }
+
+        .btn-capture {
+            background: #44aaff;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .btn-telecharger {
+            background: #44dd88;
+            color: white;
+        }
+
+        #gagnants {
+            margin-top: 25px;
+            font-size: 22px;
+            line-height: 45px;
+        }
+
+        #gagnants div {
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 8px;
+            padding: 5px;
+            margin: 3px 0;
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background: white;
+            color: #111;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            resize: vertical;
+            font-size: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background: white;
+            color: #111;
+        }
+
+        #nbParticipants {
+            margin-top: 10px;
+            color: gold;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            animation: tombe 3s linear forwards;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @keyframes tombe {
+            from {
+                transform: translateY(-50px) rotate(0deg);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(120vh) rotate(900deg);
+                opacity: 0;
+            }
+        }
+
+        /* Status d'enregistrement */
+        #recordingStatus {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 10000;
+            display: none;
+            animation: pulse 1s infinite;
+        }
+
+        /* Ajustements pour très petits écrans */
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 20px;
+            }
+            h2 {
+                font-size: 16px;
+            }
+            #roulette {
+                font-size: 18px;
+                min-height: 70px;
+                padding: 10px;
+            }
+            button {
+                font-size: 16px;
+                padding: 10px 15px;
+                min-width: 100px;
+            }
+            #gagnants {
+                font-size: 18px;
+                line-height: 38px;
+            }
+            textarea {
+                height: 150px;
+            }
+        }
+
+        /* Mode paysage */
+        @media (orientation: landscape) and (max-height: 500px) {
+            #container {
+                flex-direction: row;
+                flex-wrap: wrap;
+                max-width: 100%;
+            }
+            #gauche {
+                flex: 2;
+                min-width: 60%;
+                order: 1;
+            }
+            #droite {
+                flex: 1;
+                min-width: 35%;
+                order: 2;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            textarea {
+                height: 120px;
+            }
+            #roulette {
+                min-height: 60px;
+                font-size: 18px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            h2 {
+                font-size: 15px;
+            }
+        }
+
+        /* Impression */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            #droite {
+                display: none !important;
+            }
+            #gauche {
+                background: white !important;
+                border: 2px solid #333 !important;
+            }
+            #roulette {
+                border-color: #333 !important;
+                background: #f5f5f5 !important;
+                color: #000 !important;
+            }
+            button {
+                display: none !important;
+            }
+            .confetti {
+                display: none !important;
+            }
+            #recordingStatus {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Status d'enregistrement -->
+    <div id="recordingStatus">🔴 ENREGISTREMENT EN COURS</div>
+
+    <div id="container">
+        <div id="gauche">
+            <h1 id="titreAffiche">🏆 Tirage du concours</h1>
+            <h2 id="soustitreAffiche">⚽ Coupe du Monde</h2>
+            <img id="logo" src="https://raw.githubusercontent.com/caprarof/100AKA/refs/heads/main/100FANZONE.jpeg" alt="Logo" style="max-width:100%;height:auto;">
+
+            <div id="roulette">Prêt ?</div>
+
+            <div class="button-group">
+                <button onclick="tirage()">🎲 Lancer</button>
+                <button onclick="resetTirage()">🔄 Reset</button>
+            </div>
+
+            <div class="button-group">
+                <button id="btnEnregistrer" onclick="demarrerEnregistrement()" class="btn-enregistrer">
+                    🎬 Enregistrer
+                </button>
+                <button onclick="capturePNG()" class="btn-capture">
+                    📸 PNG
+                </button>
+                <button onclick="telechargerGIF()" class="btn-telecharger">
+                    ⬇️ GIF
+                </button>
+            </div>
+
+            <div id="gagnants"></div>
+        </div>
+
+        <div id="droite">
+            <h2 style="font-size:18px;margin-bottom:10px;">⚙️ Configuration</h2>
+
+            <label>Titre</label>
+            <input id="titre" value="🏆 Tirage du Concours Pronostic">
+
+            <label>Sous-titre</label>
+            <input id="soustitre" value="⚽ France - Suède">
+
+            <label>Nombre de gagnants</label>
+            <select id="nbGagnants">
+                <option value="1">1 gagnant</option>
+                <option value="2">2 gagnants</option>
+                <option value="3">3 gagnants</option>
+            </select>
+
+            <label>Participants (un par ligne)</label>
+            <textarea id="listeParticipants">
+Nounours Rampino
+Jerome Collot
+Severine Frisch
+            </textarea>
+
+            <div id="nbParticipants"></div>
+
+            <button onclick="majAffichage()" style="width:100%;margin-top:10px;">✔ Mettre à jour</button>
+        </div>
+    </div>
+
+    <script>
+        let participants = [];
+        let deja = [];
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecording = false;
+        let enCours = false;
+
+        // ============ FONCTIONS PRINCIPALES ============
+
+        function chargerParticipants() {
+            participants = document.getElementById("listeParticipants").value
+                .split("\n")
+                .map(x => x.trim())
+                .filter(x => x !== "");
+            document.getElementById("nbParticipants").innerHTML =
+                "👥 " + participants.length + " participant(s)";
+        }
+
+        function majAffichage() {
+            document.getElementById("titreAffiche").innerHTML =
+                document.getElementById("titre").value || "🏆 Tirage";
+            document.getElementById("soustitreAffiche").innerHTML =
+                document.getElementById("soustitre").value || "Concours";
+        }
+
+        function pause(ms) {
+            return new Promise(r => setTimeout(r, ms));
+        }
+
+        function animation() {
+            return new Promise(resolve => {
+                let vitesse = 40;
+                let tours = 0;
+
+                function tourner() {
+                    if (participants.length === 0 || enCours === false) {
+                        resolve();
+                        return;
+                    }
+                    const randomIndex = Math.floor(Math.random() * participants.length);
+                    document.getElementById("roulette").innerHTML = participants[randomIndex] || "---";
+                    tours++;
+                    if (tours < 50 && enCours) {
+                        vitesse += 2;
+                        setTimeout(tourner, vitesse);
+                    } else {
+                        resolve();
+                    }
+                }
+                tourner();
+            });
+        }
+
+        function confettis() {
+            const couleurs = ["#ff0000", "#00ff00", "#0099ff", "#ffff00", "#ff00ff", "#ffffff", "#ff8800"];
+            for (let i = 0; i < 200; i++) {
+                let c = document.createElement("div");
+                c.className = "confetti";
+                c.style.left = Math.random() * window.innerWidth + "px";
+                c.style.top = "-20px";
+                c.style.background = couleurs[Math.floor(Math.random() * couleurs.length)];
+                c.style.width = (6 + Math.random() * 8) + "px";
+                c.style.height = c.style.width;
+                c.style.animationDuration = (2 + Math.random() * 2) + "s";
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
+            }
+        }
+
+        async function tirage() {
+            if (enCours) return; // Empêcher les clics multiples
+            
+            chargerParticipants();
+            if (participants.length === 0) {
+                alert("Veuillez saisir au moins un participant.");
+                return;
+            }
+
+            let nb = parseInt(document.getElementById("nbGagnants").value);
+            if (participants.length < nb) {
+                alert("Il n'y a pas assez de participants.");
+                return;
+            }
+
+            enCours = true;
+            deja = [];
+            document.getElementById("gagnants").innerHTML = "";
+            const btnLancer = document.querySelector("button[onclick='tirage()']");
+            btnLancer.disabled = true;
+
+            try {
+                for (let tour = 1; tour <= nb; tour++) {
+                    if (!enCours) break;
+                    
+                    await animation();
+
+                    let disponibles = participants.filter(x => !deja.includes(x));
+                    if (disponibles.length === 0) break;
+
+                    let gagnant = disponibles[Math.floor(Math.random() * disponibles.length)];
+                    deja.push(gagnant);
+                    document.getElementById("roulette").innerHTML = "🏆 " + gagnant;
+
+                    let medaille = "🥇";
+                    if (tour === 2) medaille = "🥈";
+                    if (tour === 3) medaille = "🥉";
+
+                    document.getElementById("gagnants").innerHTML +=
+                        "<div>" + medaille + " <b>" + gagnant + "</b></div>";
+
+                    confettis();
+                    await pause(2500);
+                }
+            } catch (e) {
+                console.error("Erreur lors du tirage:", e);
+            } finally {
+                enCours = false;
+                btnLancer.disabled = false;
+                
+                // Arrêter l'enregistrement automatiquement si actif
+                if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
+                    setTimeout(() => {
+                        if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
+                            mediaRecorder.stop();
+                        }
+                    }, 2000);
+                }
+            }
+        }
+
+        function resetTirage() {
+            enCours = false;
+            deja = [];
+            document.getElementById("roulette").innerHTML = "Prêt ?";
+            document.getElementById("gagnants").innerHTML = "";
+            document.querySelector("button[onclick='tirage()']").disabled = false;
+        }
+
+        // ============ FONCTIONS D'ENREGISTREMENT ============
+
+        async function demarrerEnregistrement() {
+            const btn = document.getElementById('btnEnregistrer');
+            
+            if (isRecording) {
+                // Arrêter l'enregistrement
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+                isRecording = false;
+                btn.innerHTML = '🎬 Enregistrer';
+                btn.classList.remove('recording');
+                document.getElementById('recordingStatus').style.display = 'none';
+                return;
+            }
+
+            try {
+                // Vérifier si l'API est disponible
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                    alert("Votre navigateur ne supporte pas l'enregistrement d'écran. Utilisez Chrome ou Firefox sur Android.");
+                    return;
+                }
+
+                // Capturer l'écran
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                });
+
+                // Vérifier les codecs disponibles
+                let mimeType = 'video/webm;codecs=vp9';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'video/webm;codecs=vp8';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) {
+                        mimeType = 'video/webm';
+                    }
+                }
+
+                // Créer le MediaRecorder
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: mimeType
+                });
+
+                recordedChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    if (recordedChunks.length > 0) {
+                        const blob = new Blob(recordedChunks, {
+                            type: 'video/webm'
+                        });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `tirage_${new Date().toISOString().slice(0,10)}.webm`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        setTimeout(() => URL.revokeObjectURL(url), 5000);
+                    }
+                    
+                    // Arrêter les tracks
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    isRecording = false;
+                    btn.innerHTML = '🎬 Enregistrer';
+                    btn.classList.remove('recording');
+                    document.getElementById('recordingStatus').style.display = 'none';
+                };
+
+                mediaRecorder.start(1000);
+                isRecording = true;
+                btn.innerHTML = '⏹️ Arrêter';
+                btn.classList.add('recording');
+                document.getElementById('recordingStatus').style.display = 'block';
+
+                // Gérer l'arrêt si l'utilisateur ferme le partage d'écran
+                stream.getVideoTracks()[0].addEventListener('ended', () => {
+                    if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                    }
+                });
+
+            } catch (err) {
+                console.error("Erreur d'enregistrement:", err);
+                let message = "Impossible de démarrer l'enregistrement.\n\n";
+                if (err.name === 'NotAllowedError') {
+                    message += "Vous devez autoriser le partage d'écran.";
+                } else if (err.name === 'NotFoundError') {
+                    message += "Aucune source d'écran disponible.";
+                } else {
+                    message += err.message || "Erreur inconnue.";
+                }
+                alert(message);
+            }
+        }
+
+        // ============ CAPTURE PNG ============
+
+        async function capturePNG() {
+            try {
+                // Méthode simplifiée pour mobile
+                const element = document.getElementById('gauche');
+                
+                // Utiliser l'API Canvas directement pour une capture plus simple
+                const canvas = document.createElement('canvas');
+                canvas.width = element.offsetWidth * 2;
+                canvas.height = element.offsetHeight * 2;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(2, 2);
+                
+                // Dessiner un fond
+                ctx.fillStyle = '#002b5c';
+                ctx.fillRect(0, 0, element.offsetWidth, element.offsetHeight);
+                
+                // Capturer le contenu via html2canvas si disponible
+                try {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+                    document.head.appendChild(script);
+                    
+                    await new Promise((resolve, reject) => {
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        setTimeout(resolve, 3000);
+                    });
+                    
+                    if (typeof html2canvas !== 'undefined') {
+                        const h2c = html2canvas || window.html2canvas;
+                        const capturedCanvas = await h2c(element, {
+                            scale: 2,
+                            backgroundColor: '#002b5c',
+                            allowTaint: true,
+                            useCORS: true,
+                            logging: false
+                        });
+                        
+                        const link = document.createElement('a');
+                        link.download = `tirage_${new Date().toISOString().slice(0,10)}.png`;
+                        link.href = capturedCanvas.toDataURL('image/png');
+                        link.click();
+                        return;
+                    }
+                } catch (e) {
+                    console.log("html2canvas non disponible, utilisation de la méthode alternative");
+                }
+                
+                // Méthode alternative: utiliser l'API de capture d'écran
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: false
+                });
+                const track = stream.getVideoTracks()[0];
+                const imageCapture = new ImageCapture(track);
+                const bitmap = await imageCapture.grabFrame();
+                
+                const canvas2 = document.createElement('canvas');
+                canvas2.width = bitmap.width;
+                canvas2.height = bitmap.height;
+                const ctx2 = canvas2.getContext('2d');
+                ctx2.drawImage(bitmap, 0, 0);
+                
+                const link = document.createElement('a');
+                link.download = `tirage_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas2.toDataURL('image/png');
+                link.click();
+                
+                track.stop();
+                
+            } catch (err) {
+                console.error("Erreur de capture:", err);
+                alert("Impossible de capturer l'écran. Utilisez le bouton 'Enregistrer' pour la vidéo.");
+            }
+        }
+
+        // ============ TELECHARGER EN GIF ============
+
+        function telechargerGIF() {
+            alert("📹 Pour obtenir un GIF animé :\n\n1. Utilisez '🎬 Enregistrer' pour capturer la vidéo\n2. Téléchargez le fichier WebM\n3. Utilisez ezgif.com pour convertir en GIF");
+            
+            const gagnantsDiv = document.getElementById('gagnants');
+            if (gagnantsDiv.children.length > 0) {
+                if (confirm("Voulez-vous capturer une image PNG des gagnants à la place ?")) {
+                    capturePNG();
+                }
+            }
+        }
+
+        // ============ ÉVÉNEMENTS ============
+
+        document.getElementById("listeParticipants").addEventListener("input", chargerParticipants);
+        document.getElementById("titre").addEventListener("input", majAffichage);
+        document.getElementById("soustitre").addEventListener("input", majAffichage);
+
+        // Initialisation
+        chargerParticipants();
+        majAffichage();
+
+        // Gestion du redimensionnement pour les confettis
+        window.addEventListener('resize', function() {
+            // Les confettis sont gérés dynamiquement
+        });
+
+        console.log("Application prête - Version mobile optimisée");
+    </script>
+
+</body>
+</html>
